@@ -13,9 +13,9 @@ stock_width = 0.5;
 stock_len = 3;
 // To model the curve from the wheel; 6" and 8" are common
 wheel_diameter = 8;
-// Thickness matters only if using this for visualizations
+// Wheel or platen thickness; matters only if using this for visualizations
 wheel_thickness = 1;
-// Radius of the edge of the wheel; shows at back edge of top cut
+// Radius of the edge of the wheel/platen; shows at back edge of top cut
 wheel_edge_radius = .0625;
 // Common radii are .0156 (1/64") .03125 (1/32") .0625 (1/16") (Nose radius currently ignored)
 nose_radius = .0156; // 1/64
@@ -33,6 +33,8 @@ side_relief_angle = 15;
 end_relief_angle = 15;
 // How far back the top of the tool the side cut extends, relative to the width of the stock; typically between 1 and 2
 side_edge_aspect_ratio = 1.5;
+// use_platen: true for belt grinder platen, false for wheel grinder
+use_platen = true;
 
 /* [Hidden] */
 
@@ -77,7 +79,27 @@ module wheel(r=wheel_r, t=wheel_t) {
         smooth_wheel(r, t);
     }
 }
-
+module platen(h=wheel_r, t=wheel_t) {
+    hull() {
+        // front of platen
+        translate([t/2, wheel_e_r, -h/2])
+            cylinder(r=wheel_e_r, h=h, $fn=45);
+        translate([-t/2, wheel_e_r, -h/2])
+            cylinder(r=wheel_e_r, h=h, $fn=45);
+        // extend it back to represent what will be cut out
+        translate([t/2, t, -h/2])
+            cylinder(r=wheel_e_r, h=h, $fn=45);
+        translate([-t/2, t, -h/2])
+            cylinder(r=wheel_e_r, h=h, $fn=45);
+    }
+}
+module surface(t=wheel_t) {
+    if (use_platen) {
+        platen(t=t);
+    } else {
+        wheel(t=t);
+    }
+}
 module stock(w=stock_w, l=stock_l) {
     // origin is pivot point for cuts, oriented to be like using a wheel
     translate([pivot_offset, -l, -w])
@@ -91,7 +113,7 @@ module side_cut() {
         rotate([0, 0, -z])
         rotate([0, side_relief_angle, 0])
             stock();
-        wheel(t=wheel_t*10); // "infinite" wheel, move stock
+        surface(t=wheel_t*10); // "infinite" wheel, move stock
     }
 }
 module end_cut() {
@@ -102,7 +124,7 @@ module end_cut() {
         rotate([end_relief_angle, 0, 0])
         rotate([0, 0, z])
             side_cut();
-        wheel();
+        surface();
     }
 }
 module nose_radius() {
@@ -119,8 +141,9 @@ module top_cut() {
         rotate([0, 0, z])
         rotate([0, 90, 0])
             nose_radius();
-        wheel();
+        surface();
     }
 }
 //wheel();
+//platen();
 top_cut();
