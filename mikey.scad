@@ -28,6 +28,8 @@ knife_tip_included_angle = 65;
 threading_tip_included_angle = 60;
 // Back Rake (BR) 
 back_rake_angle = 15;
+// Back Rake depth ratio (depth of back rake relative to stock width; reduce for high BR)
+back_rake_depth_ratio = 1;
 // Knife Back Rake (BR) (knife tool)
 knife_back_rake_angle = 10;
 // Side Rake (SR)
@@ -149,7 +151,7 @@ module top_cut(br=back_rake_angle, nr=nose_r, tia=tip_included_angle, era=end_re
         rotate([0, 0, z])
         rotate([0, 90, 0])
             nose_radius(nr=nr, tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear);
-        surface();
+        surface(t=stock_w*2*back_rake_depth_ratio);
     }
 }
 module square_tool(br=back_rake_angle, nr=nose_r, tia=tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
