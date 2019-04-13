@@ -1,7 +1,7 @@
 // Copyright 2019 Michael K Johnson
 // Use allowed under Attribution 4.0 International (CC BY 4.0) license terms
 // https://creativecommons.org/licenses/by/4.0/legalcode
-// Model of Mikey's Square Tool
+// Model of Mikey's Square, Knife, and Threading Tools
 // https://www.hobby-machinist.com/threads/models-for-grinding-hss-lathe-tools.62111/
 // Scale 200-500% for printing, reducing length, to see closely
 // All parameters are in inches, because that's common use
@@ -25,9 +25,10 @@ side_cutting_edge_angle = 15;
 // End Cutting Edge Angle (ECEA) is derived from the included angle of the tip, and is normally less than 90
 tip_included_angle = 80;
 knife_tip_included_angle = 65;
+threading_tip_included_angle = 60;
 // Back Rake (BR) 
 back_rake_angle = 15;
-// Turning Back Rake (BR) (turning tool)
+// Knife Back Rake (BR) (knife tool)
 knife_back_rake_angle = 10;
 // Side Rake (SR)
 side_rake_angle = 15;
@@ -37,6 +38,7 @@ side_relief_angle = 15;
 end_relief_angle = 15;
 // How far back the top of the tool the side cut extends, relative to the width of the stock; typically between 1 and 2
 side_edge_aspect_ratio = 1.5;
+threading_side_edge_aspect_ratio = 0.5;
 // use_platen: true for belt grinder platen, false for wheel grinder
 use_platen = true;
 
@@ -156,6 +158,12 @@ module square_tool(br=back_rake_angle, nr=nose_r, tia=tip_included_angle, era=en
 module knife_tool(br=knife_back_rake_angle, nr=knife_nose_r, tia=knife_tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=0, sear=0) {
     top_cut(br=br, nr=nr, tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear);
 }
+module threading_tool(br=0, nr=0, tia=threading_tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=threading_tip_included_angle/2, sear=threading_side_edge_aspect_ratio) {
+    // no top cut or nose radius
+    end_cut(tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear);
+}
 square_tool();
-translate([-2*stock_w, 0, 0]) knife_tool();
 //knife_tool();
+//threading_tool();
+translate([-2*stock_w, 0, 0]) knife_tool();
+translate([2*stock_w, 0, 0]) threading_tool();
