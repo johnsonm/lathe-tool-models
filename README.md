@@ -1,6 +1,6 @@
 In a [massive thread on Hobby-Machinist](https://www.hobby-machinist.com/threads/models-for-grinding-hss-lathe-tools.62111/), user [Mikey](https://www.hobby-machinist.com/members/mikey.21432/) has provided an education in grinding HSS lathe tools. This [customizer](https://www.thingiverse.com/apps/customizer/run?thing_id=3560037) is intended to make it easy to print out models to help gain a sense of the shape of these tools. (Left-handed versions of these tools may be printed by mirroring them in the slicer.)
 
-### Modifications
+## Modifications
 
 Most of the parameters use [industry-standard names](https://me-mechanicalengineering.com/single-point-cutting-tool/) for the angles.
 
@@ -19,7 +19,9 @@ back_rake_depth_ratio = 0.45;
 
 ```
 
-### Demonstration
+## Demonstration
+
+### Large Scale Models
 
 If you wish to print large-scale examples, such as for teaching purposes, I recommend:
 
@@ -30,7 +32,26 @@ If you wish to print large-scale examples, such as for teaching purposes, I reco
 
 Please comment here about your use of these models for teaching as encouragement for further development, and include any suggestions that come to mind from using them to teach.
 
-### Limitations
+### Grinding setup model
+
+The file `mikey-cutting-demo.stl` shows a model of each of the three cutting steps against a platen.  This file cannot be printed as it is, and was not intended to be printed. It is intended to view electronically.
+
+You can create this model for any parameter configuration by changing the bottom of `mikey.scad` from:
+
+```
+* demo_set();
+standard_set();
+```
+
+to
+
+```
+demo_set();
+* standard_set();
+```
+
+
+## Limitations
 
 At the time of writing, these models do not include the nose radius. Because the recommended nose radius is between 1 and 2 typical nozzle diameters (1/64" is almost exactly 0.4mm), there would be no substantial practical benefit from adding those to the model for 3d-printing 1:1 size examples. Please leave a comment here if you would find it useful to have the nose radius modeled, and describe the utility.
 
@@ -40,6 +61,6 @@ No attempt has been made to model the flat of the threading tool.
 
 Although the model is designed to work well in the customizer, the model is created by stacking the actual grinding operations. If you have OpenSCAD installed, you can use this source to visualize the grinding operations.
 
-The width of the grinding platform (belt grinder platen or grinding wheel) is varied in the model to represent the need to move the tool from side to side to complete a cut when the cut is larger than the grinding surface, and the belt grinder platen is extended deep in order to subtract all necessary stock when rendering the tool, but that should not detract from the utility.
+The width of the grinding platform (belt grinder platen or grinding wheel) is varied in the model to represent the need to move the tool from side to side to complete a cut when the cut is larger than the grinding surface, and the belt grinder platen is extended deep in order to subtract all necessary stock when rendering the tool.
 
-Comment out lines at the end to print out the completed tools, and instead invoke each module in order starting with `side_cut();` to see the visualization of just that cut against the grinding surface, with previously-cut sections showing, just as it would if actually grinding the tool. Within only the module you are actively using, change `surface` to `#surface` and OpenSCAD will give you a transparent representation of the grinding surface. You will have to rotate the model to get the right perspective relative to the grinding surface when you do this.
+The `demo_set()` module shows how to model a grinding operation.
