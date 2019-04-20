@@ -87,7 +87,7 @@ module wheel(r=wheel_r, t=wheel_t) {
         smooth_wheel(r, t);
     }
 }
-module platen(h=wheel_r, t=wheel_t) {
+module platen(h=wheel_r, t=wheel_t, d=wheel_t) {
     hull() {
         // front of platen
         translate([t/2, wheel_e_r, -h/2])
@@ -95,15 +95,15 @@ module platen(h=wheel_r, t=wheel_t) {
         translate([-t/2, wheel_e_r, -h/2])
             cylinder(r=wheel_e_r, h=h, $fn=45);
         // extend it back to represent what will be cut out
-        translate([t/2, t, -h/2])
+        translate([t/2, d, -h/2])
             cylinder(r=wheel_e_r, h=h, $fn=45);
-        translate([-t/2, t, -h/2])
+        translate([-t/2, d, -h/2])
             cylinder(r=wheel_e_r, h=h, $fn=45);
     }
 }
 module surface(t=wheel_t) {
     if (use_platen) {
-        platen(t=t);
+        platen(t=t, d=t);
     } else {
         wheel(t=t);
     }
@@ -113,12 +113,10 @@ module stock(w=stock_w, l=stock_l, scea=side_cutting_edge_angle, sear=side_edge_
     translate([pivot_offset(scea=scea, sear=sear), -l, -w])
         cube([w, l, w]);
 }
-module side_cut(br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
+
+module inner_side_cut(br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
     z = 90-scea;
     t = (scea*sra*era*br == 0) ? wheel_t : ((-pivot_offset(scea=scea, sear=sear))+(tan(sra)*stock_w)+(tan(era)*stock_w)+(tan(br)*stock_w)/sin(scea) + wheel_e_r*4) * 2;
-    echo(t);
-    rotate([0, -sra, 0])
-    rotate([0, 0, z])
     difference() {
         rotate([0, 0, -z])
         rotate([0, sra, 0])
@@ -126,10 +124,14 @@ module side_cut(br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle,
         surface(t=t);
     }
 }
-module end_cut(tia=tip_included_angle, br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
+module side_cut(br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
+    z = 90-scea;
+    rotate([0, -sra, 0])
+    rotate([0, 0, z])
+    inner_side_cut(br=br, era=era, sra=sra, scea=scea, sear=sear);
+}
+module inner_end_cut(tia=tip_included_angle, br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
     z = (90-tia)+scea;
-    rotate([0, 0, -z])
-    rotate([-era, 0, 0])
     difference() {
         rotate([era, 0, 0])
         rotate([0, 0, z])
@@ -137,22 +139,32 @@ module end_cut(tia=tip_included_angle, br=back_rake_angle, era=end_relief_angle,
         translate([wheel_t/2-wheel_e_r, 0, 0]) surface();
     }
 }
+module end_cut(tia=tip_included_angle, br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
+    z = (90-tia)+scea;
+    rotate([0, 0, -z])
+    rotate([-era, 0, 0])
+    inner_end_cut(tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear);
+}
 module nose_radius(nr=nose_r, tia=tip_included_angle, br=back_rake_angle, era=end_relief_angle, sre=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
     // There is no chamfer function to follow the
     // the sharp edge with a clean curve
     // Should find a way to sufficiently approximate
     end_cut(tia=tia, br=br, era=era, sre=sra, scea=scea, sear=sear);
 }
-module top_cut(br=back_rake_angle, nr=nose_r, tia=tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
+module inner_top_cut(br=back_rake_angle, nr=nose_r, tia=tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
     z = 90 + br;
-    rotate([0, -90, 0])
-    rotate([0, 0, -z])
     difference() {
         rotate([0, 0, z])
         rotate([0, 90, 0])
             nose_radius(nr=nr, tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear);
         surface(t=stock_w*2*back_rake_depth_ratio);
     }
+}
+module top_cut(br=back_rake_angle, nr=nose_r, tia=tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
+    z = 90 + br;
+    rotate([0, -90, 0])
+    rotate([0, 0, -z])
+    inner_top_cut(br=br, nr=nr, tia=tia, era=era, sra=sra, scea=scea, sear=sear);
 }
 module square_tool(br=back_rake_angle, nr=nose_r, tia=tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
     top_cut(br=br, nr=nr, tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear);
@@ -164,8 +176,27 @@ module threading_tool(br=0, nr=0, tia=threading_tip_included_angle, era=end_reli
     // no top cut or nose radius
     end_cut(tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear);
 }
-square_tool();
+module demo_set() {
+    translate([0, 0, 0]) {
+        inner_side_cut();
+        platen(d=wheel_e_r);
+    }
+    translate([wheel_t*1.5, 0, 0]) {
+        inner_end_cut();
+        platen(d=wheel_e_r);
+    }
+    translate([wheel_t*3, 0, 0]) {
+        inner_top_cut();
+        platen(d=wheel_e_r);
+    }
+}
+module standard_set() {
+    square_tool();
+    translate([-2*stock_w, 0, 0]) knife_tool();
+    translate([2*stock_w, 0, 0]) threading_tool();
+}
+* demo_set();
+standard_set();
+//square_tool();
 //knife_tool();
 //threading_tool();
-translate([-2*stock_w, 0, 0]) knife_tool();
-translate([2*stock_w, 0, 0]) threading_tool();
