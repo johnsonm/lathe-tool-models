@@ -154,28 +154,28 @@ module nose_radius(nr=nose_r, tia=tip_included_angle, br=back_rake_angle, era=en
     end_cut(tia=tia, br=br, era=era, sre=sra, scea=scea, sear=sear);
 }
 function top_cut_z(br=back_rake_angle) = 90 + br;
-module inner_top_cut(br=back_rake_angle, nr=nose_r, tia=tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio, sr=side_rake_angle) {
+module inner_top_cut(br=back_rake_angle, brdr=back_rake_depth_ratio, nr=nose_r, tia=tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio, sr=side_rake_angle) {
     z = top_cut_z(br=br);
     difference() {
         rotate([sr, 0, 0])
         rotate([0, 0, z])
         rotate([0, 90, 0])
             nose_radius(nr=nr, tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear);
-        surface(t=stock_w*2*back_rake_depth_ratio);
+        surface(t=stock_w*2*brdr);
     }
 }
-module top_cut(br=back_rake_angle, nr=nose_r, tia=tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio, sr=side_rake_angle) {
+module top_cut(br=back_rake_angle, brdr=back_rake_depth_ratio, nr=nose_r, tia=tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio, sr=side_rake_angle) {
     z = top_cut_z(br=br);
     rotate([0, -90, 0])
     rotate([0, 0, -z])
     rotate([-sr, 0, 0])
-    inner_top_cut(br=br, nr=nr, tia=tia, era=era, sra=sra, scea=scea, sear=sear, sr=sr);
+    inner_top_cut(br=br, brdr=brdr, nr=nr, tia=tia, era=era, sra=sra, scea=scea, sear=sear, sr=sr);
 }
-module square_tool(br=back_rake_angle, nr=nose_r, tia=tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio, sr=side_rake_angle) {
-    top_cut(br=br, nr=nr, tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear, sr=sr);
+module square_tool(br=back_rake_angle, brdr=back_rake_depth_ratio, nr=nose_r, tia=tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio, sr=side_rake_angle) {
+    top_cut(br=br, brdr=brdr, nr=nr, tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear, sr=sr);
 }
-module knife_tool(br=knife_back_rake_angle, nr=knife_nose_r, tia=knife_tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=0, sear=0, sr=side_rake_angle) {
-    top_cut(br=br, nr=nr, tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear, sr=sr);
+module knife_tool(br=knife_back_rake_angle, brdr=back_rake_depth_ratio, nr=knife_nose_r, tia=knife_tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=0, sear=0, sr=side_rake_angle) {
+    top_cut(br=br, brdr=brdr, nr=nr, tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear, sr=sr);
 }
 module threading_tool(br=0, nr=0, tia=threading_tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=threading_tip_included_angle/2, sear=threading_side_edge_aspect_ratio, sr=0) {
     // no top cut or nose radius
@@ -198,10 +198,14 @@ module demo_set() {
 module standard_set() {
     square_tool();
     translate([-2*stock_w, 0, 0]) knife_tool();
-    translate([2*stock_w, 0, 0]) threading_tool();
+    translate([1.5*stock_w, 0, 0]) threading_tool();
 }
 * demo_set();
 standard_set();
+// aluminum
+* translate([-3*stock_w, 0, 0]) square_tool(br=40, brdr=0.4, sr=18);
+// stainless
+* translate([-4.5*stock_w, 0, 0]) square_tool(br=10, era=13, sr=25);
 //square_tool();
 //knife_tool();
 //threading_tool();
