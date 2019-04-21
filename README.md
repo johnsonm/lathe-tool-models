@@ -1,6 +1,6 @@
 In a [massive thread on Hobby-Machinist](https://www.hobby-machinist.com/threads/models-for-grinding-hss-lathe-tools.62111/), user [Mikey](https://www.hobby-machinist.com/members/mikey.21432/) has provided an education in grinding HSS lathe tools. This [customizer](https://www.thingiverse.com/apps/customizer/run?thing_id=3560037) is intended to make it easy to print out models to help gain a sense of the shape of these tools. (Left-handed versions of these tools may be printed by mirroring them in the slicer.)
 
-## Modifications
+# Modifications
 
 Most of the parameters use [industry-standard names](https://me-mechanicalengineering.com/single-point-cutting-tool/) for the angles.
 
@@ -19,9 +19,9 @@ back_rake_depth_ratio = 0.45;
 
 ```
 
-## Demonstration
+# Demonstration
 
-### Large Scale Models
+## Large Scale Models
 
 If you wish to print large-scale examples, such as for teaching purposes, I recommend:
 
@@ -32,7 +32,7 @@ If you wish to print large-scale examples, such as for teaching purposes, I reco
 
 Please comment here about your use of these models for teaching as encouragement for further development, and include any suggestions that come to mind from using them to teach.
 
-### Grinding setup model
+## Grinding setup model
 
 The file `mikey-cutting-demo.stl` shows a model of each of the three cutting steps against a platen.  This file cannot be printed as it is, and was not intended to be printed. It is intended to view electronically.
 
@@ -51,7 +51,7 @@ demo_set();
 ```
 
 
-## Limitations
+# Limitations
 
 At the time of writing, these models do not include the nose radius. Because the recommended nose radius is between 1 and 2 typical nozzle diameters (1/64" is almost exactly 0.4mm), there would be no substantial practical benefit from adding those to the model for 3d-printing 1:1 size examples. Please leave a comment here if you would find it useful to have the nose radius modeled, and describe the utility.
 
