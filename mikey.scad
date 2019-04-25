@@ -179,7 +179,7 @@ module knife_tool(br=knife_back_rake_angle, brdr=back_rake_depth_ratio, nr=knife
 }
 module threading_tool(br=0, nr=0, tia=threading_tip_included_angle, era=end_relief_angle, sra=side_relief_angle, scea=threading_tip_included_angle/2, sear=threading_side_edge_aspect_ratio, sr=0) {
     // no top cut or nose radius
-    end_cut(tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear, sr=sr);
+    end_cut(tia=tia, br=br, era=era, sra=sra, scea=scea, sear=sear);
 }
 module demo_set() {
     translate([0, 0, 0]) {
