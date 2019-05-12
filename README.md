@@ -4,9 +4,9 @@ In a [massive thread on Hobby-Machinist](https://www.hobby-machinist.com/threads
 
 Most of the parameters use [industry-standard names](https://me-mechanicalengineering.com/single-point-cutting-tool/) for the angles.
 
-The primary exception is that the industry-standard usage of End Cutting Edge Angle (ECEA) is relative to the tool axis, whereas Mikey's documentation measures it relative to the side cutting edge angle (SCEA) because that is more directly relevant to understanding the function of the tool. Mikey's documentation recommends setting the ECEA by measuring from the SCEA with a protractor set to the included angle across the point, rather than measuring the ECEA (by either definition) directly. This model follows that recommendation by presenting a "Tip Included Angle" (`tip_included_angle`) parameter from which the ECEA is derived.
+The primary exception is that the industry-standard usage of End Cutting Edge Angle (ECEA) is relative to the tool axis (useful, for example, to set angles on a grinding jig), whereas Mikey's documentation describeds it relative to the side cutting edge angle (SCEA), because that is more directly relevant to understanding the function of the tool. This is sometimes referred to as the Nose Angle. This model follows Mikey's recommendation by presenting a "Nose Angle" (`nose_angle`) parameter from which the ECEA is derived.
 
-The other exception is that I am not aware of industry-standard names for ratios that establish how deep the side and top cuts are made, so I made something up. The `side_edge_aspect_ratio` is intended to express how far down the side from the tip the side cut should extend, relative to the width of the stock. The `threading_side_edge_aspect_ratio` is similar, but specific to the threading tool. The `back_rake_depth_ratio` is how deep (away from the tip) to cut the back rake.
+The other exception is that I am not aware of industry-standard names for ratios that establish how deep the side and top cuts are made, so I made something up. The `side_edge_aspect_ratio` is intended to express how far down the side from the tip of the nose the side cut should extend, relative to the width of the stock. The `threading_side_edge_aspect_ratio` is similar, but specific to the threading tool. The `back_rake_depth_ratio` is how deep (away from the tip) to cut the back rake.
 
 I strongly encourage you to play with these angles and ratios, preferably in a local installation of OpenSCAD working directly with `mikey.scad` rather than in customizer; you should have a better, faster experience exploring the models that way.
 
@@ -28,7 +28,7 @@ If you wish to print large-scale examples, such as for teaching purposes, I reco
 * Scale either in the slicer or by changing `stock_width` and `stock_len` to render
 * Print with a few extra perimeters so that you can file a nose radius of an appropriate scale.
 * Perhaps make the stock particularly short. Generally, you will want the stock to be at least 3-4 times as long as it is wide to have any good sense of the tool shape; substantially longer is probably a distraction and waste of plastic when you scale up.
-* Use a single-cut file to "hone" the edges of the printed part to remove visible layers, so that students can measure the angles accurately with a machinist's protractor. Be careful with the back rake, though, so that you do not cut the tip down below the top surface of the tool.
+* Use a single-cut file to "hone" the edges of the printed part to remove visible layers, so that students can measure the angles accurately with a machinist's protractor. Be careful with the back rake, though, so that you do not cut the tip of the nose down below the top surface of the tool.
 
 Please comment here about your use of these models for teaching as encouragement for further development, and include any suggestions that come to mind from using them to teach.
 
