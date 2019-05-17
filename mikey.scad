@@ -19,7 +19,7 @@ wheel_thickness = 1;
 wheel_edge_radius = .0625;
 // Common radii are .0156 (1/64") .03125 (1/32") .0625 (1/16") (Nose radius currently ignored)
 nose_radius = .03125;
-knife_nose_radius = 0.156;
+knife_nose_radius = 0.0156;
 // Side Cutting Edge Angle (SCEA)
 side_cutting_edge_angle = 15;
 // End Cutting Edge Angle (ECEA) is derived from the Nose Angle (NA, the included angle of the nose), which is normally less than 90
@@ -114,45 +114,105 @@ module stock(w=stock_w, l=stock_l, scea=side_cutting_edge_angle, sear=side_edge_
         cube([w, l, w]);
 }
 function side_cut_z(scea=side_cutting_edge_angle) = 90-scea;
+function ortho_angle(oa=side_cutting_edge_angle, ra=side_relief_angle) =
+  // angles are measured orthogonal to the axes, but relief angles are cut against cutting angles
+    asin(sin(ra)*cos(oa)) ;
 function side_cut_t(br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) = (scea*sra*era*br == 0) ? wheel_t : ((-pivot_offset(scea=scea, sear=sear))+(tan(sra)*stock_w)+(tan(era)*stock_w)+(tan(br)*stock_w)/sin(scea) + wheel_e_r*4) * 2;
 module inner_side_cut(br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
     z = side_cut_z(scea=scea);
+    x = ortho_angle(oa=scea, ra=sra);
+    echo (" - side table angle", x);
     t = side_cut_t(br=br, era=era, sra=sra, scea=scea, sear=sear);
     difference() {
+        rotate([x, 0, 0]) // with the tool turned sideways this is x not y
         rotate([0, 0, -z])
-        rotate([0, sra, 0])
             stock(scea=scea, sear=sear);
         surface(t=t);
     }
 }
 module side_cut(br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
     z = side_cut_z(scea=scea);
-    rotate([0, -sra, 0])
+    x = ortho_angle(oa=scea, ra=sra);
     rotate([0, 0, z])
+    rotate([-x, 0, 0]) // with the tool turned sideways this is x not y
     inner_side_cut(br=br, era=era, sra=sra, scea=scea, sear=sear);
+    // virtual protractor
+    *#rotate([-90, 0, 0]) polygon(points=[[0, 0], [0, stock_w], [stock_w*sin(sra), stock_w]]);
+    *#rotate([0, 0, -scea]) rotate([-90, 0, 0]) polygon(points=[[0, 0], [0, stock_w], [stock_w*sin(sra), stock_w]]);
 }
-function end_cut_z(na=nose_angle, scea=side_cutting_edge_angle) = (90-na)+scea;
+*side_cut();
+function end_cut_z(na=nose_angle, scea=side_cutting_edge_angle) = scea+(90-na);
 module inner_end_cut(na=nose_angle, br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
     z = end_cut_z(na=na, scea=scea);
+    x = ortho_angle(oa=z, ra=era);
+    echo (" - end table angle", x);
     difference() {
-        rotate([era, 0, 0])
+        rotate([x, 0, 0])
         rotate([0, 0, z])
             side_cut(br=br, era=era, sra=sra, scea=scea, sear=sear);
         translate([wheel_t/2-wheel_e_r, 0, 0]) surface();
     }
 }
+*inner_end_cut();
 module end_cut(na=nose_angle, br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
     z = end_cut_z(na=na, scea=scea);
+    x = ortho_angle(oa=z, ra=era);
     rotate([0, 0, -z])
-    rotate([-era, 0, 0])
+    rotate([-x, 0, 0])
     inner_end_cut(na=na, br=br, era=era, sra=sra, scea=scea, sear=sear);
+    // virtual protractor
+    po = -pivot_offset(scea=scea, sear=sear);
+    *#translate([stock_w-po, -(stock_w-po)*sin(z), 0])
+    rotate([-90, 0, -90])
+    polygon(points=[[0, 0], [0, stock_w], [stock_w*sin(era), stock_w]]);
 }
+*end_cut();
+module inner_nose_radius(nr=nose_r, na=nose_angle, br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
+    rz = end_cut_z(na=na, scea=scea);
+    ry = ortho_angle(oa=scea, ra=sra);
+    rx = ortho_angle(oa=rz, ra=era);
+    union() {
+        y = (nr / sin(na/2)) - (nr * sin(na/2));
+        translate([0, -y, 0])
+        difference() {
+            translate([0, y, 0])
+            rotate([0, 0, -na/2]) // bisect nose angle
+            rotate([rx, 0, 0])
+            rotate([0, ry, 0])
+            rotate([0, 0, scea])
+            end_cut(na=na, br=br, era=era, sra=sra, scea=scea, sear=sear);
+            surface();
+        }
+        translate([0, -(nr / sin(na/2)), -1.5*stock_w])
+        cylinder(r=nr, h=2*stock_w, $fn=30);
+    }
+}
+*inner_nose_radius();
 module nose_radius(nr=nose_r, na=nose_angle, br=back_rake_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio) {
-    // There is no chamfer function to follow the
-    // the sharp edge with a clean curve
-    // Should find a way to sufficiently approximate
-    end_cut(na=na, br=br, era=era, sra=sra, scea=scea, sear=sear);
+    if (true) {
+        end_cut(na=na, br=br, era=era, sra=sra, scea=scea, sear=sear);
+    } else {
+        // There is no chamfer function to make nose radius model easy
+        // FIXME: these angles are not quite right
+        rz = end_cut_z(na=na, scea=scea);
+        ry = ortho_angle(oa=scea, ra=sra);
+        rx = ortho_angle(oa=rz, ra=era);
+        difference() {
+            rotate([0, 0, -scea])
+            rotate([0, -ry, 0])
+            rotate([-rx, 0, 0])
+            rotate([0, 0, na/2]) // bisect nose angle
+            inner_nose_radius(nr=nr, na=na, br=br, era=era, sra=sra, scea=scea, sear=sear);
+            union() {
+                translate([0, stock_l-stock_w, stock_w])
+                stock();
+                translate([0, stock_l-stock_w, -stock_w])
+                stock();
+            }
+        }
+    }
 }
+*nose_radius();
 function top_cut_z(br=back_rake_angle) = 90 + br;
 module inner_top_cut(br=back_rake_angle, brdr=back_rake_depth_ratio, nr=nose_r, na=nose_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio, sr=side_rake_angle) {
     z = top_cut_z(br=br);
@@ -166,19 +226,24 @@ module inner_top_cut(br=back_rake_angle, brdr=back_rake_depth_ratio, nr=nose_r, 
 }
 module top_cut(br=back_rake_angle, brdr=back_rake_depth_ratio, nr=nose_r, na=nose_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio, sr=side_rake_angle) {
     z = top_cut_z(br=br);
+    echo("    BR", br, "NR", nr, "NA", na, "ERA", era, "SRA", sra, "SCEA", scea, "SR", sr);
     rotate([0, -90, 0])
     rotate([0, 0, -z])
     rotate([-sr, 0, 0])
     inner_top_cut(br=br, brdr=brdr, nr=nr, na=na, era=era, sra=sra, scea=scea, sear=sear, sr=sr);
 }
 module square_tool(br=back_rake_angle, brdr=back_rake_depth_ratio, nr=nose_r, na=nose_angle, era=end_relief_angle, sra=side_relief_angle, scea=side_cutting_edge_angle, sear=side_edge_aspect_ratio, sr=side_rake_angle) {
+    echo("Square tool:");
     top_cut(br=br, brdr=brdr, nr=nr, na=na, era=era, sra=sra, scea=scea, sear=sear, sr=sr);
 }
 module knife_tool(br=knife_back_rake_angle, brdr=back_rake_depth_ratio, nr=knife_nose_r, na=knife_nose_angle, era=end_relief_angle, sra=side_relief_angle, scea=0, sear=0, sr=side_rake_angle) {
+    echo("Knife tool:");
     top_cut(br=br, brdr=brdr, nr=nr, na=na, era=era, sra=sra, scea=scea, sear=sear, sr=sr);
 }
 module threading_tool(br=0, nr=0, na=threading_nose_angle, era=end_relief_angle, sra=side_relief_angle, scea=threading_nose_angle/2, sear=threading_side_edge_aspect_ratio, sr=0) {
     // no top cut or nose radius
+    echo("Threading tool:");
+    echo("    BR", br, "NA", na, "ERA", era, "SRA", sra, "SCEA", scea);
     end_cut(na=na, br=br, era=era, sra=sra, scea=scea, sear=sear);
 }
 module demo_set() {
@@ -200,12 +265,12 @@ module standard_set() {
     translate([-2*stock_w, 0, 0]) knife_tool();
     translate([1.5*stock_w, 0, 0]) threading_tool();
 }
-* demo_set();
+*demo_set();
 standard_set();
 // aluminum
-* translate([-3*stock_w, 0, 0]) square_tool(br=40, brdr=0.4, sr=18);
+*translate([-3*stock_w, 0, 0]) square_tool(br=40, brdr=0.4, sr=18);
 // stainless
-* translate([-4.5*stock_w, 0, 0]) square_tool(br=10, era=13, sr=25);
+*translate([-4.5*stock_w, 0, 0]) square_tool(br=10, era=13, sr=25, sear=1);
 //square_tool();
 //knife_tool();
 //threading_tool();
